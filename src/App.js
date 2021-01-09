@@ -1,29 +1,68 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { IoIosAdd } from "react-icons/io";
+import { FiTrash2 } from "react-icons/fi";
+
+import api from './services/api';
 
 import "./styles.css";
+import "./App.css";
 
 function App() {
+
+  const [repositories, setRepositories] = useState([]);
+
+
+  useEffect(() => {
+    api.get('repositories').then(response => {
+      setRepositories(response.data);
+    })
+  }, []);
+
   async function handleAddRepository() {
-    // TODO
+    const response = await api.post('repositories', {
+      "url": "https://github.com/Rocketseat/umbriel",
+      "title": `Rebeca ${Date.now()}`,
+      "techs": ["React", "ReactNative", "TypeScript", "ContextApi"]
+    });
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`repositories/${id}`);
+    setRepositories(repositories.filter(repository => repository.id !== id));
   }
 
   return (
-    <div>
-      <ul data-testid="repository-list">
-        <li>
-          Repositório 1
+    <div className="profile-container">
 
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+      <button type="button" onClick={handleAddRepository}>
+        <IoIosAdd size={28} color="#E02041" />
+        Adicionar
+      </button>
+
+
+      <h1>Casos Cadastrados</h1>
+
+
+      <ul data-testid="repository-list">
+        {repositories.map(repository =>
+          <li key={repository.id}>
+
+            <strong>{repository.url}</strong>
+            <p>{repository.title}</p>
+
+            <button typpe="button" onClick={() => handleRemoveRepository(repository.id)}>
+              <FiTrash2 size={20} color="#E02041" />
+              Remover
+            </button>
+          </li>
+        )}
       </ul>
 
-      <button onClick={handleAddRepository}>Adicionar</button>
+
     </div>
   );
 }
